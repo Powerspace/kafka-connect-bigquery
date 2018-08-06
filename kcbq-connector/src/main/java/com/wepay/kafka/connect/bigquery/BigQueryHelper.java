@@ -35,51 +35,50 @@ import java.io.InputStream;
  * with or without login credentials.
  */
 public class BigQueryHelper {
-  private static final Logger logger = LoggerFactory.getLogger(BigQueryHelper.class);
+    private static final Logger logger = LoggerFactory.getLogger(BigQueryHelper.class);
 
-  /**
-   * Returns a default {@link BigQuery} instance for the specified project with credentials provided
-   * in the specified file, which can then be used for creating, updating, and inserting into tables
-   * from specific datasets.
-   *
-   * @param projectName The name of the BigQuery project to work with
-   * @param keyFilename The name of a file containing a JSON key that can be used to provide
-   *                    credentials to BigQuery, or null if no authentication should be performed.
-   * @return The resulting BigQuery object.
-   */
-  public BigQuery connect(String projectName, String keyFilename) {
-    if (keyFilename == null) {
-      return connect(projectName);
+    /**
+     * Returns a default {@link BigQuery} instance for the specified project with credentials provided
+     * in the specified file, which can then be used for creating, updating, and inserting into tables
+     * from specific datasets.
+     *
+     * @param projectName The name of the BigQuery project to work with
+     * @param keyFilename The name of a file containing a JSON key that can be used to provide
+     *                    credentials to BigQuery, or null if no authentication should be performed.
+     * @return The resulting BigQuery object.
+     */
+    public BigQuery connect(String projectName, String keyFilename) {
+        if (keyFilename == null) {
+            return connect(projectName);
+        }
+
+        logger.debug("Attempting to open file {} for service account json key", keyFilename);
+        try (InputStream credentialsStream = new FileInputStream(keyFilename)) {
+            logger.debug("Attempting to authenticate with BigQuery using provided json key");
+            return new BigQueryOptions.DefaultBigQueryFactory()
+                    .create(BigQueryOptions.newBuilder()
+                            .setProjectId(projectName)
+                            .setCredentials(GoogleCredentials.fromStream(credentialsStream))
+                            .build());
+        } catch (IOException err) {
+            throw new BigQueryConnectException("Failed to access json key file", err);
+        }
     }
 
-    logger.debug("Attempting to open file {} for service account json key", keyFilename);
-    try (InputStream credentialsStream = new FileInputStream(keyFilename)) {
-      logger.debug("Attempting to authenticate with BigQuery using provided json key");
-      return new BigQueryOptions.DefaultBigqueryFactory().create(
-          BigQueryOptions.newBuilder()
-          .setProjectId(projectName)
-          .setCredentials(GoogleCredentials.fromStream(credentialsStream))
-          .build()
-      );
-    } catch (IOException err) {
-      throw new BigQueryConnectException("Failed to access json key file", err);
+    /**
+     * Returns a default {@link BigQuery} instance for the specified project with no authentication
+     * credentials, which can then be used for creating, updating, and inserting into tables from
+     * specific datasets.
+     *
+     * @param projectName The name of the BigQuery project to work with
+     * @return The resulting BigQuery object.
+     */
+    public BigQuery connect(String projectName) {
+        logger.debug("Attempting to access BigQuery without authentication");
+        return new BigQueryOptions.DefaultBigQueryFactory().create(
+                BigQueryOptions.newBuilder()
+                        .setProjectId(projectName)
+                        .build()
+        );
     }
-  }
-
-  /**
-   * Returns a default {@link BigQuery} instance for the specified project with no authentication
-   * credentials, which can then be used for creating, updating, and inserting into tables from
-   * specific datasets.
-   *
-   * @param projectName The name of the BigQuery project to work with
-   * @return The resulting BigQuery object.
-   */
-  public BigQuery connect(String projectName) {
-    logger.debug("Attempting to access BigQuery without authentication");
-    return new BigQueryOptions.DefaultBigqueryFactory().create(
-        BigQueryOptions.newBuilder()
-        .setProjectId(projectName)
-        .build()
-    );
-  }
 }
