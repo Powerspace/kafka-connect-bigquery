@@ -75,7 +75,7 @@ public class BigQueryRecordConverter implements RecordConverter<Map<String, Obje
     Schema kafkaConnectSchema = kafkaConnectRecord.valueSchema();
     if (kafkaConnectSchema.type() != Schema.Type.STRUCT) {
       throw new
-          ConversionConnectException("Top-level Kafka Connect schema must be of type 'struct'");
+          ConversionConnectException("Top-level Kafka Connect schema must be of type 'struct' and not " + kafkaConnectSchema.type().getName());
     }
     return convertStruct(kafkaConnectRecord.value(), kafkaConnectSchema);
   }
