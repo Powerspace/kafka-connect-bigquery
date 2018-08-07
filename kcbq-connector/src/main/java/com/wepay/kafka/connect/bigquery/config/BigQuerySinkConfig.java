@@ -29,6 +29,9 @@ import com.wepay.kafka.connect.bigquery.convert.SchemaConverter;
 import com.wepay.kafka.connect.bigquery.convert.kafkadata.KafkaDataBQRecordConverter;
 import com.wepay.kafka.connect.bigquery.convert.kafkadata.KafkaDataBQSchemaConverter;
 
+import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient;
+import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient;
+import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigException;
@@ -388,9 +391,10 @@ public class BigQuerySinkConfig extends AbstractConfig {
    * @return a {@link RecordConverter} for BigQuery.
    */
   public RecordConverter<Map<String, Object>> getRecordConverter() {
+    CachedSchemaRegistryClient cachedSchemaRegistryClient = new CachedSchemaRegistryClient("invalidurl", 100);
     return getBoolean(INCLUDE_KAFKA_DATA_CONFIG)
         ? new KafkaDataBQRecordConverter(getBoolean(CONVERT_DOUBLE_SPECIAL_VALUES_CONFIG))
-        : new BigQueryRecordConverter(getBoolean(CONVERT_DOUBLE_SPECIAL_VALUES_CONFIG));
+        : new BigQueryRecordConverter(getBoolean(CONVERT_DOUBLE_SPECIAL_VALUES_CONFIG), new KafkaAvroDeserializer(cachedSchemaRegistryClient));
   }
 
   /**

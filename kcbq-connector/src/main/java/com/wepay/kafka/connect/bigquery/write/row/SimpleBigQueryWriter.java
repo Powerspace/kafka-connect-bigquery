@@ -63,7 +63,7 @@ public class SimpleBigQueryWriter extends BigQueryWriter {
                                                             String topic) {
     InsertAllRequest request = createInsertAllRequest(tableId, rows);
     InsertAllResponse writeResponse = bigQuery.insertAll(request);
-    if (writeResponse.hasErrors()) {
+     if (writeResponse.hasErrors()) {
       logger.warn(
           "You may want to enable auto schema updates by specifying "
           + "{}=true in the properties file",
